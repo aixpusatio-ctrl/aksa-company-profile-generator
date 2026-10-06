@@ -8,6 +8,7 @@ use App\Models\PageView;
 use App\Models\User;
 use App\Notifications\NewContactMessageNotification;
 use App\Services\AnalyticsService;
+use App\Services\DomainService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -221,7 +222,7 @@ class PublicWebsiteTest extends TestCase
         $url = $this->owner->notifications()->firstOrFail()->data['url'];
         $host = parse_url($url, PHP_URL_HOST);
 
-        $this->assertTrue(app(\App\Services\DomainService::class)->isCentralHost($host), "Notification URL {$url} must use a central host.");
+        $this->assertTrue(app(DomainService::class)->isCentralHost($host), "Notification URL {$url} must use a central host.");
     }
 
     public function test_contact_honeypot_silently_discards_spam(): void
