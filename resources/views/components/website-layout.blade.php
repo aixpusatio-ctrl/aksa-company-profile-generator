@@ -20,6 +20,9 @@
             ['websites.content.index', [$company, 'gallery'], 'Gallery', 'photo'],
             ['websites.edit', [$company, 'contact'], 'Contact', 'phone'],
         ],
+        'Toko Online' => [
+            ['websites.shop.overview', [$company], 'Online Shop', 'shopping-bag'],
+        ],
         'Pengaturan' => [
             ['websites.edit', [$company, 'branding'], 'Branding', 'paint'],
             ['websites.edit', [$company, 'seo'], 'SEO', 'search'],
@@ -61,7 +64,7 @@
                     <p class="hidden px-3 pb-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase lg:block">{{ $group }}</p>
                     @foreach ($links as [$route, $params, $label, $icon])
                         @php($href = route($route, $params))
-                        @php($isActive = $current === $href || ($route === 'websites.pages.index' && request()->routeIs('websites.pages.*')))
+                        @php($isActive = $current === $href || ($route === 'websites.pages.index' && request()->routeIs('websites.pages.*')) || ($route === 'websites.shop.overview' && request()->routeIs('websites.shop.*')))
                         <a href="{{ $href }}" class="flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition {{ $isActive ? 'bg-white text-brand-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:bg-white/70 hover:text-slate-900' }}">
                             <x-icon :name="$icon" class="size-4 {{ $isActive ? 'text-brand-600' : 'text-slate-400' }}" /> {{ $label }}
                         </a>

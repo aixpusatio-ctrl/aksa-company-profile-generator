@@ -9,6 +9,7 @@
 @source '../views/websites';
 @source '../views/components/site';
 @source '../views/components/company';
+@source '../views/components/shop';
 @source '../views/components/icon.blade.php';
 @source '../../app/Support/Website';
 
@@ -209,3 +210,42 @@ body { --section-py:clamp(4.5rem, 9vw, 7.5rem); }
 
 /* Composer pages: rich text inherits theme colors */
 [class*="theme-"] .site-prose a { color: var(--brand-primary); }
+
+
+/* ==========================================================================
+   Online shop (resources/views/websites/shop, components/shop)
+   ========================================================================== */
+.shop-root { min-height: 60vh; }
+/* Horizontal scrollers without visible scrollbars */
+.shop-scroll { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.shop-scroll::-webkit-scrollbar { display: none; }
+
+/* Wishlist heart: outline ↔ solid */
+.shop-wish .wish-on { display: none; }
+.shop-wish[data-active] .wish-on { display: block; }
+.shop-wish[data-active] .wish-off { display: none; }
+.shop-wish[data-active] { color: #f43f5e; }
+
+/* Product page sticky CTA bar: lift floating buttons above it on mobile */
+@media (max-width: 1023px) {
+    body:has(.shop-sticky-cta) .site-float-wa,
+    body:has(.shop-sticky-cta) .shop-float-cart { transform: translateY(-4.75rem); }
+    body:has(.shop-sticky-cta) main { padding-bottom: 4.5rem; }
+}
+
+/* Number inputs used as quantity steppers */
+.shop-qty::-webkit-outer-spin-button, .shop-qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.shop-qty { -moz-appearance: textfield; appearance: textfield; }
+
+/* Form controls inside the shop follow the theme */
+.shop-input { display:block; width:100%; border-radius: var(--brand-btn-radius); border:1px solid var(--line); background: var(--card); color: var(--ink); padding: .625rem .875rem; font-size: .875rem; line-height: 1.4; transition: border-color .2s, box-shadow .2s; }
+.shop-input::placeholder { color: var(--muted); }
+.shop-input:focus { outline: none; border-color: var(--brand-primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-primary) 20%, transparent); }
+.shop-input[aria-invalid="true"] { border-color: #f43f5e; }
+.shop-label { display:block; margin-bottom: .375rem; font-size: .8125rem; font-weight: 600; color: var(--ink); }
+.shop-error { margin-top: .375rem; font-size: .75rem; color: #e11d48; }
+
+@media print {
+    .shop-no-print, header, footer, nav, .site-float-wa, .shop-float-cart, .shop-widgets { display: none !important; }
+    .shop-root { background: #fff !important; color: #000 !important; }
+}

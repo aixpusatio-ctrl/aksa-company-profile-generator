@@ -50,7 +50,7 @@ class CouponController extends SellerController
     {
         $request->merge(['code' => Str::upper(trim((string) $request->input('code')))]);
 
-        return $request->validate([
+        $data = $request->validate([
             'code' => ['required', 'string', 'max:40', 'regex:/^[A-Z0-9_-]+$/', Rule::unique('coupons')->where('company_profile_id', $company->id)->ignore($coupon?->id)],
             'description' => ['nullable', 'string', 'max:255'],
             'type' => ['required', Rule::in(array_keys(Coupon::TYPES))],
@@ -62,6 +62,11 @@ class CouponController extends SellerController
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
-        ]) + ['value' => 0];
+        ]);
+
+        // Free shipping coupons have no value (column is NOT NULL).
+        $data['value'] ??= 0;
+
+        return $data;
     }
 }

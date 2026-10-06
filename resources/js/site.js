@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
+import registerShop from './shop';
 
 Alpine.plugin(collapse);
 
@@ -104,6 +105,8 @@ function countUp(el) {
     };
     requestAnimationFrame(step);
 }
+
+registerShop(Alpine);
 
 window.Alpine = Alpine;
 Alpine.start();

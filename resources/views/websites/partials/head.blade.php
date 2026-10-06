@@ -5,6 +5,9 @@
 --}}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+@if ($site->isLive())
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+@endif
 <title>{{ $seo['title'] }}</title>
 <meta name="description" content="{{ $seo['description'] }}">
 @if ($seo['keywords'])

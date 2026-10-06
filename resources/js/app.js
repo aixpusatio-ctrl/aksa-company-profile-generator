@@ -251,6 +251,92 @@ Alpine.data('lazyFrame', (src, width = 1440) => ({
     },
 }));
 
+/**
+ * MD5 of a UTF-8 string (hex). Variant rows are posted keyed by md5(label)
+ * so option values with dots/brackets stay form-safe (see ProductService).
+ */
+function md5(input) {
+    const str = unescape(encodeURIComponent(input));
+    const k = [];
+    for (let i = 0; i < 64; i++) k[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296) | 0;
+    const r = [7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
+        4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21];
+    const len = str.length;
+    const words = new Array((((len + 8) >> 6) + 1) * 16).fill(0);
+    for (let i = 0; i < len; i++) words[i >> 2] |= str.charCodeAt(i) << ((i % 4) * 8);
+    words[len >> 2] |= 0x80 << ((len % 4) * 8);
+    words[words.length - 2] = len * 8;
+    let [a0, b0, c0, d0] = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476];
+    for (let j = 0; j < words.length; j += 16) {
+        let [a, b, c, d] = [a0, b0, c0, d0];
+        for (let i = 0; i < 64; i++) {
+            let f;
+            let g;
+            if (i < 16) { f = (b & c) | (~b & d); g = i; }
+            else if (i < 32) { f = (d & b) | (~d & c); g = (5 * i + 1) % 16; }
+            else if (i < 48) { f = b ^ c ^ d; g = (3 * i + 5) % 16; }
+            else { f = c ^ (b | ~d); g = (7 * i) % 16; }
+            const tmp = d;
+            d = c;
+            c = b;
+            const x = (a + f + k[i] + words[j + g]) | 0;
+            b = (b + ((x << r[i]) | (x >>> (32 - r[i])))) | 0;
+            a = tmp;
+        }
+        a0 = (a0 + a) | 0; b0 = (b0 + b) | 0; c0 = (c0 + c) | 0; d0 = (d0 + d) | 0;
+    }
+    return [a0, b0, c0, d0].map((n) => [0, 8, 16, 24].map((s) => ((n >>> s) & 0xff).toString(16).padStart(2, '0')).join('')).join('');
+}
+
+window.md5 = md5;
+
+/**
+ * Product options & variants builder (seller dashboard). Options are
+ * "name + comma separated values"; every combination becomes a variant row
+ * whose label matches ProductService::syncVariants ("M / Black").
+ */
+Alpine.data('variantBuilder', (config) => ({
+    enabled: !!config.enabled,
+    options: config.options.length ? config.options : [{ name: '', values: '' }],
+    rows: config.variants || {},
+    init() {
+        this.$watch('options', () => this.regenerate(), { deep: true });
+        this.regenerate();
+    },
+    get combos() {
+        const sets = this.options
+            .map((o) => ({ name: (o.name || '').trim(), values: [...new Set((o.values || '').split(',').map((v) => v.trim()).filter(Boolean))].slice(0, 30) }))
+            .filter((o) => o.name && o.values.length)
+            .slice(0, 3);
+        if (!sets.length) return [];
+        let combos = [[]];
+        sets.forEach((set) => {
+            combos = combos.flatMap((combo) => set.values.map((v) => [...combo, v]));
+        });
+        return combos.slice(0, 100).map((c) => c.join(' / '));
+    },
+    regenerate() {
+        this.combos.forEach((label) => this.row(label));
+    },
+    row(label) {
+        if (!this.rows[label]) this.rows[label] = { sku: '', price: '', sale_price: '', stock: '', weight: '', is_active: true };
+        return this.rows[label];
+    },
+    key(label) {
+        return md5(label);
+    },
+    addOption() {
+        if (this.options.length < 3) this.options.push({ name: '', values: '' });
+    },
+    removeOption(index) {
+        this.options.splice(index, 1);
+        if (!this.options.length) this.options.push({ name: '', values: '' });
+    },
+    fill(field, value) {
+        this.combos.forEach((label) => (this.row(label)[field] = value));
+    },
+}));
+
 window.Alpine = Alpine;
 Alpine.plugin(collapse);
 Alpine.start();

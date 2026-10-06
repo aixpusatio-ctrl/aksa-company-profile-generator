@@ -7,6 +7,7 @@ use App\Models\Shop\ProductCategory;
 use App\Models\Shop\ProductTag;
 use App\Services\MediaService;
 use App\Services\Shop\ProductService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -60,14 +61,19 @@ class CategoryController extends SellerController
         return back()->with('success', 'Kategori dihapus. Produk di dalamnya menjadi tanpa kategori.');
     }
 
-    public function storeTag(Request $request, CompanyProfile $company): RedirectResponse
+    public function storeTag(Request $request, CompanyProfile $company): RedirectResponse|JsonResponse
     {
         $this->authorizeShop($company);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:60'],
             'color' => ['required', Rule::in(ProductTag::COLORS)],
         ]);
-        $company->productTags()->firstOrCreate(['slug' => Str::slug($data['name'])], $data);
+        $tag = $company->productTags()->firstOrCreate(['slug' => Str::slug($data['name'])], $data);
+
+        // The product form adds custom tags inline (JSON) and selects them right away.
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $tag->id, 'name' => $tag->name, 'color' => $tag->color]);
+        }
 
         return back()->with('success', 'Tag ditambahkan.');
     }

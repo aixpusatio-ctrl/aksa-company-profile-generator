@@ -3,3 +3,8 @@
         Preview {{ $company->isPublished() ? '' : '· Draft' }} — {{ $company->subdomainHost() }}
     </div>
 @endif
+
+{{-- Online shop widgets (cart drawer, floating cart, toasts) on every live page of a shop-enabled website. --}}
+@if (isset($company, $site) && $company->exists && $company->hasShop() && ! $site->isPreview())
+    @include('websites.shop.partials.widgets')
+@endif
