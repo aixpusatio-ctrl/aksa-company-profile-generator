@@ -21,7 +21,7 @@ class NewContactMessageNotification extends Notification
             'icon' => 'mail',
             'title' => 'Pesan baru dari '.$this->message->name,
             'message' => Str::limit($this->message->message, 90),
-            'url' => route('websites.messages.index', $this->message->company_profile_id),
+            'url' => central_url(route('websites.messages.index', $this->message->company_profile_id, absolute: false)),
         ];
     }
 }

@@ -26,7 +26,7 @@ class CompanyProfileFactory extends Factory
             'template_id' => Template::factory(),
             'name' => $name,
             'slug' => Str::limit(Str::slug($name), 40, '').'-'.Str::lower(Str::random(5)),
-            'tagline' => fake()->catchPhrase(),
+            'tagline' => fake()->sentence(4),
             'description' => fake()->paragraph(),
             'email' => fake()->companyEmail(),
             'phone' => '021-'.fake()->numerify('#######'),

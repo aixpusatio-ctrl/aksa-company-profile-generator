@@ -79,6 +79,13 @@ class CustomDomainTest extends TestCase
         $domain = Domain::query()->firstOrFail();
         $this->assertSame(Domain::TYPE_APEX, $domain->type);
         $this->assertSame('A', app(DomainService::class)->dnsInstructions($domain)[0]['type']);
+
+        $this->addDomain('www.perusahaan.co.id')->assertSessionHasNoErrors();
+        $www = Domain::query()->where('domain', 'www.perusahaan.co.id')->firstOrFail();
+        $records = app(DomainService::class)->dnsInstructions($www);
+        $this->assertSame(Domain::TYPE_SUBDOMAIN, $www->type);
+        $this->assertSame(['CNAME', 'www'], [$records[0]['type'], $records[0]['name']]);
+        $this->assertSame('_cpg-verify.www', $records[1]['name']);
     }
 
     public function test_invalid_domain_formats_are_rejected(): void

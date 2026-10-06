@@ -18,3 +18,14 @@ if (! function_exists('app_name')) {
         return (string) setting('app_name', config('app.name'));
     }
 }
+
+if (! function_exists('central_url')) {
+    /**
+     * Absolute URL on the central application host (safe to call while a
+     * tenant website request is being handled).
+     */
+    function central_url(string $path = '/'): string
+    {
+        return rtrim((string) config('app.url'), '/').'/'.ltrim($path, '/');
+    }
+}

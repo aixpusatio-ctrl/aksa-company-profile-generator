@@ -111,7 +111,7 @@
             <div>
                 <h3 class="font-heading text-sm font-bold tracking-wider text-on-secondary uppercase">Layanan</h3>
                 <ul class="mt-5 space-y-2.5 text-sm">
-                    @forelse ($company->services->take(6) as $service)
+                    @forelse (($sections->contains('key', 'services') ? $company->services : collect())->take(6) as $service)
                         <li><a href="{{ $site->anchor('services') }}" class="hover:text-on-secondary">{{ $service->title }}</a></li>
                     @empty
                         @foreach ($pages->take(6) as $p)

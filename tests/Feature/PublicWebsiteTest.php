@@ -207,6 +207,21 @@ class PublicWebsiteTest extends TestCase
         $notification = $this->owner->notifications()->firstOrFail();
         $this->assertSame(NewContactMessageNotification::class, $notification->type);
         $this->assertStringContainsString('Rina Pengunjung', $notification->data['title']);
+        $this->assertStringEndsWith("/dashboard/websites/{$this->company->id}/messages", $notification->data['url']);
+    }
+
+    public function test_contact_notification_link_points_to_the_central_dashboard(): void
+    {
+        // The notification is created while handling a request on the tenant host,
+        // but the dashboard only exists on the central host.
+        $this->post($this->tenantUrl($this->company, '/contact'), [
+            'name' => 'Rina', 'email' => 'rina@example.test', 'message' => 'Mohon info lebih lanjut.',
+        ])->assertRedirect();
+
+        $url = $this->owner->notifications()->firstOrFail()->data['url'];
+        $host = parse_url($url, PHP_URL_HOST);
+
+        $this->assertTrue(app(\App\Services\DomainService::class)->isCentralHost($host), "Notification URL {$url} must use a central host.");
     }
 
     public function test_contact_honeypot_silently_discards_spam(): void

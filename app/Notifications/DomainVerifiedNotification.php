@@ -20,7 +20,7 @@ class DomainVerifiedNotification extends Notification
             'icon' => 'globe',
             'title' => 'Domain aktif',
             'message' => "Domain {$this->domain->domain} berhasil diverifikasi.",
-            'url' => route('websites.domains.index', $this->domain->company_profile_id),
+            'url' => central_url(route('websites.domains.index', $this->domain->company_profile_id, absolute: false)),
         ];
     }
 }

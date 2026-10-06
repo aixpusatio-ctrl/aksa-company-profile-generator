@@ -20,7 +20,7 @@ class WebsitePublishedNotification extends Notification
             'icon' => 'rocket',
             'title' => 'Website dipublikasikan',
             'message' => "{$this->company->name} sekarang live di {$this->company->primaryHost()}",
-            'url' => route('websites.show', $this->company),
+            'url' => central_url(route('websites.show', $this->company, absolute: false)),
         ];
     }
 }
