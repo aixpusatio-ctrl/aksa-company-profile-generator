@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Middleware\AuthenticateCustomer;
 use App\Http\Middleware\EnsureCentralDomain;
+use App\Http\Middleware\EnsureShopEnabled;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\RedirectIfCustomer;
 use App\Http\Middleware\ResolveCompanyDomain;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Foundation\Application;
@@ -26,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'central' => EnsureCentralDomain::class,
             'tenant.domain' => ResolveCompanyDomain::class,
             'tenant' => ResolveTenant::class,
+            'shop' => EnsureShopEnabled::class,
+            'customer' => AuthenticateCustomer::class,
+            'customer.guest' => RedirectIfCustomer::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));
