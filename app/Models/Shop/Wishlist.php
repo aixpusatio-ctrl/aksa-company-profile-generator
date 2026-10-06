@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Models\Shop;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Wishlist extends Model
+{
+    protected $fillable = ['company_profile_id', 'customer_id', 'session_id'];
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(WishlistItem::class)->latest();
+    }
+}

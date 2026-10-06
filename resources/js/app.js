@@ -55,13 +55,14 @@ Alpine.data('autosave', (url, tab) => ({
         const data = { _tab: tab };
         for (const [key, value] of form.entries()) {
             if (value instanceof File || key.startsWith('_') || key.endsWith('_media') || key.endsWith('_remove')) continue;
-            const match = key.match(/^(\w+)\[(\w+)\]$/);
-            if (match) {
-                data[match[1]] = data[match[1]] || {};
-                data[match[1]][match[2]] = value;
-            } else {
-                data[key] = value;
-            }
+            // Support nested names: a[b] and a[0][b]
+            const parts = key.replace(/\]/g, '').split('[');
+            let target = data;
+            parts.slice(0, -1).forEach((part) => {
+                target[part] = target[part] || {};
+                target = target[part];
+            });
+            target[parts[parts.length - 1]] = value;
         }
         this.status = 'saving';
         try {
@@ -223,6 +224,30 @@ Alpine.data('imageField', (initial) => ({
         this.picked = '';
         this.removed = true;
         this.$refs.file.value = '';
+    },
+}));
+
+/**
+ * Live template thumbnail: an iframe rendered at desktop/mobile width and
+ * scaled to fit its box. The iframe only loads once it scrolls into view,
+ * so a gallery with 50 templates stays fast.
+ */
+Alpine.data('lazyFrame', (src, width = 1440) => ({
+    src: null,
+    scale: 0.25,
+    loaded: false,
+    width,
+    init() {
+        const fit = () => (this.scale = this.$el.clientWidth / this.width);
+        fit();
+        new ResizeObserver(fit).observe(this.$el);
+        const io = new IntersectionObserver((entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) {
+                this.src = src;
+                io.disconnect();
+            }
+        }, { rootMargin: '300px' });
+        io.observe(this.$el);
     },
 }));
 

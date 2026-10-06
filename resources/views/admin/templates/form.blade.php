@@ -43,6 +43,8 @@
                         <x-form.select name="template_category_id" label="Kategori" :value="$template->template_category_id"
                             :options="$categories->pluck('name', 'id')->all()" placeholder="— Tanpa kategori —" />
                         <x-form.textarea name="description" label="Deskripsi" :value="$template->description" rows="3" class="sm:col-span-2" />
+                        <x-form.input name="style" label="Style keywords" :value="$template->style" placeholder="Enterprise · Clean · Premium" help="Dipisah titik tengah (·) atau koma; tampil sebagai tag di galeri." class="sm:col-span-2" />
+                        <x-form.select name="demo" label="Data demo preview" :value="$template->demo" :options="$demoOptions" placeholder="— Sesuai layout —" class="sm:col-span-2" />
                         <x-form.input name="preview_url" type="url" label="Preview URL (opsional)" :value="$template->preview_url" placeholder="https://..." class="sm:col-span-2"
                             help="URL demo eksternal. Kosongkan untuk memakai preview bawaan." />
                     </div>
@@ -94,6 +96,32 @@
                     </div>
                 </div>
 
+                {{-- Component composition & design system (layout "composer") --}}
+                @php
+                    $composition = old('config', $template->config ?? []);
+                @endphp
+                <div class="card">
+                    <div class="border-b border-slate-100 px-6 py-4">
+                        <h2 class="font-display text-base font-semibold text-slate-900">Komposisi Komponen & Design System</h2>
+                        <p class="text-sm text-slate-500">Berlaku untuk layout <strong>Component Composer</strong>: pilih varian komponen tiap bagian dan token desainnya. Kombinasi inilah yang membuat setiap template berbeda.</p>
+                    </div>
+                    <div class="card-body space-y-6">
+                        <div class="grid gap-4 sm:grid-cols-3">
+                            @foreach (\App\Support\Website\DesignSystem::SLOTS as $slot => $default)
+                                <x-form.select :name="'config[components]['.$slot.']'" :label="ucwords(str_replace('-', ' ', $slot))" :value="$composition['components'][$slot] ?? $default"
+                                    :options="\App\Support\Website\ComponentRegistry::options($slot)" />
+                            @endforeach
+                        </div>
+                        <div class="grid gap-4 border-t border-slate-100 pt-6 sm:grid-cols-3">
+                            @foreach (\App\Support\Website\DesignSystem::OPTIONS as $token => $options)
+                                <x-form.select :name="'config[design]['.$token.']'" :label="\App\Support\Website\DesignSystem::LABELS[$token]" :value="$composition['design'][$token] ?? $options[0]"
+                                    :options="array_combine($options, array_map(fn ($o) => ucwords(str_replace('-', ' ', $o)), $options))" />
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-slate-500">Tip: coba varian tanpa menyimpan lewat URL preview, mis. <code class="rounded bg-slate-100 px-1">{{ $editing ? route('templates.render', $template) : '/templates/{slug}/render' }}?c[hero]=editorial&amp;d[theme]=dark</code></p>
+                    </div>
+                </div>
+
                 @if ($editing)
                     <div class="card overflow-hidden">
                         <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
@@ -137,14 +165,17 @@
                         <h2 class="font-display text-base font-semibold text-slate-900">Thumbnail</h2>
                     </div>
                     <div class="card-body">
-                        <x-form.image name="thumbnail" :value="$template->url('thumbnail')" help="Rasio 16:10 disarankan. Tanpa thumbnail, kartu memakai live preview." />
+                        <x-form.image name="thumbnail" label="Desktop" :value="$template->url('thumbnail')" help="Rasio 16:10 disarankan. Tanpa thumbnail, kartu memakai live preview." />
+                        <x-form.image name="mobile_thumbnail" label="Mobile" :value="$template->url('mobile_thumbnail')" aspect="aspect-[9/16]" help="Screenshot mobile (opsional). Bisa dibuat otomatis: php artisan templates:thumbnails" class="mt-5" />
                     </div>
                 </div>
 
                 @if ($editing)
                     <div class="card card-body text-sm">
                         <dl class="space-y-2">
-                            <div class="flex justify-between"><dt class="text-slate-500">Dipakai</dt><dd class="font-medium text-slate-800">{{ $template->companyProfiles()->count() }} website</dd></div>
+                            <div class="flex justify-between"><dt class="text-slate-500">Websites</dt><dd class="font-medium text-slate-800">{{ $template->companyProfiles()->count() }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-slate-500">Users</dt><dd class="font-medium text-slate-800">{{ $template->companyProfiles()->distinct()->count('user_id') }}</dd></div>
+                            <div class="flex justify-between"><dt class="text-slate-500">Published websites</dt><dd class="font-medium text-slate-800">{{ $template->companyProfiles()->published()->count() }}</dd></div>
                             <div class="flex justify-between"><dt class="text-slate-500">Dibuat</dt><dd class="font-medium text-slate-800">{{ $template->created_at?->format('d M Y') }}</dd></div>
                             <div class="flex justify-between"><dt class="text-slate-500">Diperbarui</dt><dd class="font-medium text-slate-800">{{ $template->updated_at?->diffForHumans() }}</dd></div>
                         </dl>

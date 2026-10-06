@@ -41,5 +41,6 @@
         <x-form.image name="logo" label="Logo" :value="$company->url('logo')" aspect="aspect-square" />
         <x-form.image name="favicon" label="Favicon" :value="$company->url('favicon')" aspect="aspect-square" />
         <x-form.image name="hero_image" label="Gambar hero" :value="$company->url('hero_image')" class="sm:col-span-2" help="Gambar utama di bagian atas website. Rekomendasi 1600×900 px." />
+        <x-form.input name="hero_video" type="url" label="Video hero (opsional)" :value="$company->hero_video" placeholder="https://.../video.mp4 atau link YouTube/Vimeo" class="sm:col-span-2" help="Dipakai template dengan Video Hero: file MP4/WebM diputar otomatis tanpa suara, link YouTube/Vimeo dibuka sebagai showreel." />
     </div>
 </div>

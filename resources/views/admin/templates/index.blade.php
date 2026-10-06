@@ -1,5 +1,5 @@
 <x-layouts.admin title="Templates">
-    <x-page-header title="Templates" description="Kelola template website yang dapat dipilih pengguna.">
+    <x-page-header title="Templates" :description="$templates->count().' template · '.$templates->where('status', 'published')->count().' published · '.\App\Support\Website\ComponentRegistry::count().' komponen di library'">
         <x-slot:actions>
             <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary"><x-icon name="tag" class="size-4" /> Kategori</a>
             <a href="{{ route('admin.templates.create') }}" class="btn btn-primary"><x-icon name="plus" class="size-4" /> Template Baru</a>
@@ -34,15 +34,7 @@
             @foreach ($templates as $template)
                 <div class="card flex flex-col overflow-hidden">
                     <div class="relative aspect-[16/10] overflow-hidden border-b border-slate-100 bg-slate-100">
-                        @if ($thumb = $template->url('thumbnail'))
-                            <img src="{{ $thumb }}" alt="{{ $template->name }}" loading="lazy" class="absolute inset-0 size-full object-cover object-top">
-                        @else
-                            <div class="absolute inset-0" x-data="{ s: 0.25 }" x-init="s = $el.clientWidth / 1440; new ResizeObserver(() => s = $el.clientWidth / 1440).observe($el)">
-                                <iframe src="{{ route('templates.render', $template) }}" title="Preview {{ $template->name }}" loading="lazy" tabindex="-1" aria-hidden="true"
-                                    class="pointer-events-none absolute top-0 left-0 origin-top-left border-0" style="width: 1440px; height: 900px; transform: scale(0.25)"
-                                    :style="`width: 1440px; height: 900px; transform: scale(${s})`"></iframe>
-                            </div>
-                        @endif
+                        <x-template-thumb :template="$template" aspect="aspect-auto" class="absolute inset-0" />
                         <div class="absolute top-3 left-3 flex gap-1.5">
                             <x-status-badge :status="$template->status" class="shadow-sm" />
                         </div>
@@ -58,9 +50,12 @@
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <h3 class="truncate font-display text-base font-semibold text-slate-900">{{ $template->name }}</h3>
-                                <p class="mt-0.5 text-xs text-slate-500">Layout {{ $template->layoutName() }} · {{ $template->category?->name ?? 'Tanpa kategori' }}</p>
+                                <p class="mt-0.5 text-xs text-slate-500">{{ $template->isComposed() ? 'Composed' : 'Crafted · '.$template->layoutName() }} · {{ $template->category?->name ?? 'Tanpa kategori' }}</p>
                             </div>
-                            <span class="badge badge-slate shrink-0" title="Website yang memakai template ini"><x-icon name="building" class="size-3" /> {{ $template->company_profiles_count }}</span>
+                            <div class="flex shrink-0 gap-1">
+                                <span class="badge badge-slate" title="Website yang memakai template ini"><x-icon name="globe" class="size-3" /> {{ $template->company_profiles_count }}</span>
+                                <span class="badge badge-slate" title="User yang memakai template ini"><x-icon name="users" class="size-3" /> {{ $template->users_count ?? 0 }}</span>
+                            </div>
                         </div>
                         @if ($template->description)
                             <p class="mt-3 line-clamp-2 text-sm text-slate-600">{{ $template->description }}</p>

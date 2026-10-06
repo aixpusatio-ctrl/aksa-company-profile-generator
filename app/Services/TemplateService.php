@@ -39,7 +39,9 @@ class TemplateService
             ->with('category')
             ->published()
             ->when($category, fn ($q) => $q->whereHas('category', fn ($c) => $c->where('slug', $category)))
-            ->when($search, fn ($q) => $q->where('name', 'like', '%'.$search.'%'))
+            ->when($search, fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$search.'%')
+                ->orWhere('style', 'like', '%'.$search.'%')
+                ->orWhere('description', 'like', '%'.$search.'%')))
             ->ordered()
             ->get();
     }
@@ -94,7 +96,7 @@ class TemplateService
      */
     public function sampleCompany(Template $template): CompanyProfile
     {
-        $demo = DemoContent::forLayout($template->layout);
+        $demo = DemoContent::for($template->demoKey());
 
         $company = new CompanyProfile($demo['company']);
         $company->id = 0;
@@ -103,7 +105,8 @@ class TemplateService
         $company->setRelation('template', $template);
         $company->setRelation('primaryDomain', null);
 
-        $order = $template->resolvedSettings()['sections'] ?? array_keys(config('website-templates.sections'));
+        $all = array_keys(config('website-templates.sections'));
+        $order = array_values(array_unique(array_merge(array_intersect($template->resolvedSettings()['sections'] ?? [], $all), $all)));
         $company->setRelation('sections', new Collection(collect($order)->values()->map(
             fn ($key, $i) => new CompanySection(['key' => $key, 'is_enabled' => true, 'sort_order' => $i])
         )->all()));

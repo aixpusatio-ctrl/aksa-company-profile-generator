@@ -61,7 +61,7 @@ class CompanyProfileTest extends TestCase
         $this->assertCount(count(config('website-templates.sections')), $sections);
         $this->assertTrue($sections->every(fn ($s) => $s->is_enabled));
         $this->assertSame(
-            config('website-templates.layouts.modern-business.defaults.sections'),
+            $this->expectedSectionOrder('modern-business'),
             $sections->sortBy('sort_order')->pluck('key')->values()->all(),
         );
     }
@@ -488,7 +488,7 @@ class CompanyProfileTest extends TestCase
         $this->assertSame($new->id, $company->template_id);
         $this->assertNull($company->branding);
         $this->assertSame(
-            config('website-templates.layouts.technology.defaults.sections'),
+            $this->expectedSectionOrder('technology'),
             $company->sections()->get()->sortBy('sort_order')->pluck('key')->values()->all(),
         );
     }
@@ -533,7 +533,7 @@ class CompanyProfileTest extends TestCase
         $company->refresh();
         $this->assertNull($company->branding);
         $this->assertSame(
-            config('website-templates.layouts.construction.defaults.sections'),
+            $this->expectedSectionOrder('construction'),
             $company->sections()->get()->sortBy('sort_order')->pluck('key')->values()->all(),
         );
     }
@@ -638,5 +638,14 @@ class CompanyProfileTest extends TestCase
             ->assertJson(['slug' => 'baru-sekali', 'valid' => true, 'available' => true, 'host' => 'baru-sekali.'.config('platform.domain')]);
         $this->getJson('/api/subdomain-availability?slug=dipakai')->assertJson(['valid' => true, 'available' => false]);
         $this->getJson('/api/subdomain-availability?slug=admin')->assertJson(['valid' => false, 'available' => false]);
+    }
+
+    /** Template default order followed by sections the template doesn't list (e.g. stats, clients). */
+    private function expectedSectionOrder(string $layout): array
+    {
+        return array_values(array_unique(array_merge(
+            config("website-templates.layouts.{$layout}.defaults.sections"),
+            array_keys(config('website-templates.sections')),
+        )));
     }
 }

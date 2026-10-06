@@ -42,8 +42,12 @@ class TemplateTest extends TestCase
         Template::factory()->create(['name' => 'Bangun Jaya', 'template_category_id' => $category->id]);
         Template::factory()->create(['name' => 'Kopi Senja']);
 
-        $this->get('/templates?category=konstruksi')->assertOk()->assertSee('Bangun Jaya')->assertDontSee('Kopi Senja');
-        $this->get('/templates?q=Kopi')->assertOk()->assertSee('Kopi Senja')->assertDontSee('Bangun Jaya');
+        // Filtering & search run instantly in the browser: every card carries its category & search text.
+        $this->get('/templates?category=konstruksi')->assertOk()
+            ->assertSee('Bangun Jaya')
+            ->assertSee('data-category="konstruksi"', false)
+            ->assertSee('Konstruksi')
+            ->assertSee('Search template...');
     }
 
     public function test_public_template_detail_page(): void

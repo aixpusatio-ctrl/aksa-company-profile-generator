@@ -43,6 +43,70 @@ final class DemoContent
     }
 
     /**
+     * Demo data set for a template: a data file in app/Support/Demo/data/{key}.php
+     * when present, otherwise the dataset of the hand-crafted layout.
+     */
+    public static function for(string $key): array
+    {
+        $file = __DIR__.'/Demo/data/'.basename($key).'.php';
+
+        return is_file($file) ? self::fromData(require $file) : self::forLayout($key);
+    }
+
+    /** Keys of all data-file datasets. */
+    public static function dataKeys(): array
+    {
+        return array_map(fn ($file) => basename($file, '.php'), glob(__DIR__.'/Demo/data/*.php') ?: []);
+    }
+
+    /**
+     * Expand a compact data file (see app/Support/Demo/data/README.md) into
+     * the full structure used by previews and the seeder.
+     */
+    public static function fromData(array $d): array
+    {
+        $prefix = $d['prefix'];
+        $company = $d['company'];
+
+        foreach (['about', 'history'] as $field) {
+            if (is_array($company[$field] ?? null)) {
+                $company[$field] = self::paragraphs($company[$field]);
+            }
+        }
+        if (is_array($company['mission'] ?? null)) {
+            $company['mission'] = self::bullets($company['mission']);
+        }
+        if (is_array($company['company_values'] ?? null)) {
+            $company['company_values'] = self::values($company['company_values']);
+        }
+        if (is_array($company['social_links'] ?? null) && array_is_list($company['social_links'])) {
+            $company['social_links'] = self::socials($d['handle'] ?? $prefix, $company['social_links']);
+        }
+        if (isset($company['highlights'])) {
+            $company['highlights'] = array_map(fn ($row) => ['value' => (string) $row[0], 'label' => $row[1]], $company['highlights']);
+        }
+        $company['hero_image'] ??= self::img("{$prefix}-hero", 1600, 1000);
+        $company['country'] ??= 'Indonesia';
+
+        $page = $d['page'];
+
+        return [
+            'company' => $company,
+            'services' => self::services($prefix, $d['services']),
+            'products' => self::products($prefix, $d['products']),
+            'projects' => self::projects($prefix, $d['projects']),
+            'team' => self::team($prefix, $d['domain'], $d['team']),
+            'testimonials' => self::testimonials($prefix, $d['testimonials']),
+            'gallery' => self::gallery($prefix, $d['gallery']),
+            'pages' => [
+                self::page($prefix, $page[0], $page[1], $page[2], $page[3], $page[4], $page[5], $page[6]),
+                self::careerPage($prefix, $company['name'], $company['email'], $d['roles']),
+                self::privacyPage($prefix, $company['name'], $company['email']),
+            ],
+        ];
+    }
+
+    /**
      * Nested demo navigation used by template previews.
      */
     public static function menus(): array

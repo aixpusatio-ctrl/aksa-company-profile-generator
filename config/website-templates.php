@@ -1,6 +1,72 @@
 <?php
 
 /*
+| Google Fonts available for branding: name => [weights, kind].
+| kind: sans | serif | mono | display (affects the CSS fallback stack).
+*/
+$fontRegistry = [
+    'Inter' => ['300;400;500;600;700;800', 'sans'],
+    'Inter Tight' => ['300;400;500;600;700;800', 'sans'],
+    'Plus Jakarta Sans' => ['300;400;500;600;700;800', 'sans'],
+    'Poppins' => ['300;400;500;600;700;800', 'sans'],
+    'Montserrat' => ['300;400;500;600;700;800', 'sans'],
+    'DM Sans' => ['300;400;500;600;700;800', 'sans'],
+    'Manrope' => ['300;400;500;600;700;800', 'sans'],
+    'Space Grotesk' => ['300;400;500;600;700', 'sans'],
+    'IBM Plex Sans' => ['300;400;500;600;700', 'sans'],
+    'Archivo' => ['300;400;500;600;700;800', 'sans'],
+    'Outfit' => ['300;400;500;600;700;800', 'sans'],
+    'Sora' => ['300;400;500;600;700;800', 'sans'],
+    'Oswald' => ['300;400;500;600;700', 'display'],
+    'Syne' => ['400;500;600;700;800', 'display'],
+    'Bricolage Grotesque' => ['300;400;500;600;700;800', 'sans'],
+    'Figtree' => ['300;400;500;600;700;800', 'sans'],
+    'Urbanist' => ['300;400;500;600;700;800', 'sans'],
+    'Red Hat Display' => ['300;400;500;600;700;800', 'sans'],
+    'Lexend' => ['300;400;500;600;700;800', 'sans'],
+    'Nunito Sans' => ['300;400;500;600;700;800', 'sans'],
+    'Work Sans' => ['300;400;500;600;700;800', 'sans'],
+    'Public Sans' => ['300;400;500;600;700;800', 'sans'],
+    'Rubik' => ['300;400;500;600;700;800', 'sans'],
+    'Barlow' => ['300;400;500;600;700;800', 'sans'],
+    'Barlow Condensed' => ['300;400;500;600;700;800', 'display'],
+    'Libre Franklin' => ['300;400;500;600;700;800', 'sans'],
+    'Jost' => ['300;400;500;600;700;800', 'sans'],
+    'Epilogue' => ['300;400;500;600;700;800', 'sans'],
+    'Schibsted Grotesk' => ['400;500;600;700;800', 'sans'],
+    'Geist' => ['300;400;500;600;700;800', 'sans'],
+    'Hanken Grotesk' => ['300;400;500;600;700;800', 'sans'],
+    'Albert Sans' => ['300;400;500;600;700;800', 'sans'],
+    'Onest' => ['300;400;500;600;700;800', 'sans'],
+    'Chivo' => ['300;400;500;600;700;800', 'sans'],
+    'Unbounded' => ['300;400;500;600;700;800', 'display'],
+    'Big Shoulders Display' => ['300;400;500;600;700;800', 'display'],
+    'Bebas Neue' => ['400', 'display'],
+    'Anton' => ['400', 'display'],
+    'Tenor Sans' => ['400', 'sans'],
+    'Playfair Display' => ['400;500;600;700;800', 'serif'],
+    'Lora' => ['400;500;600;700', 'serif'],
+    'Cormorant Garamond' => ['300;400;500;600;700', 'serif'],
+    'Libre Baskerville' => ['400;700', 'serif'],
+    'Fraunces' => ['300;400;500;600;700;800', 'serif'],
+    'Instrument Serif' => ['400', 'serif'],
+    'Source Serif 4' => ['300;400;500;600;700;800', 'serif'],
+    'Merriweather' => ['300;400;700', 'serif'],
+    'Bodoni Moda' => ['400;500;600;700;800', 'serif'],
+    'EB Garamond' => ['400;500;600;700;800', 'serif'],
+    'Spectral' => ['300;400;500;600;700;800', 'serif'],
+    'Newsreader' => ['300;400;500;600;700;800', 'serif'],
+    'DM Serif Display' => ['400', 'serif'],
+    'Young Serif' => ['400', 'serif'],
+    'Cinzel' => ['400;500;600;700;800', 'serif'],
+    'Marcellus' => ['400', 'serif'],
+    'Prata' => ['400', 'serif'],
+    'Italiana' => ['400', 'serif'],
+    'JetBrains Mono' => ['300;400;500;600;700;800', 'mono'],
+    'Space Mono' => ['400;700', 'mono'],
+];
+
+/*
 |--------------------------------------------------------------------------
 | Website Template Layouts
 |--------------------------------------------------------------------------
@@ -26,13 +92,13 @@ return [
         'gallery' => 'Gallery',
         'cta' => 'Call To Action',
         'contact' => 'Contact',
+        'stats' => 'Statistics',
+        'clients' => 'Clients / Partners',
     ],
 
-    'fonts' => [
-        'Inter', 'Plus Jakarta Sans', 'Poppins', 'Montserrat', 'DM Sans', 'Manrope',
-        'Space Grotesk', 'IBM Plex Sans', 'Playfair Display', 'Lora', 'Cormorant Garamond',
-        'Archivo', 'Outfit', 'Sora', 'Libre Baskerville', 'Oswald',
-    ],
+    'font_registry' => $fontRegistry,
+
+    'fonts' => array_keys($fontRegistry),
 
     'button_styles' => [
         'rounded' => 'Rounded',
@@ -48,7 +114,24 @@ return [
         'xl' => '24px',
     ],
 
+    /*
+    | Layout themes. "composer" builds a website from the component library
+    | (resources/views/components/company/*) and a design system stored in
+    | the template's config; the others are hand-crafted Blade themes.
+    */
     'layouts' => [
+
+        'composer' => [
+            'name' => 'Component Composer',
+            'category' => 'corporate',
+            'description' => 'Website disusun dari library komponen (navbar, hero, about, services, ...) dengan design system per template.',
+            'defaults' => [
+                'primary_color' => '#2563eb', 'secondary_color' => '#0f172a',
+                'heading_font' => 'Inter Tight', 'body_font' => 'Inter',
+                'button_style' => 'rounded', 'border_radius' => 'lg',
+                'sections' => ['hero', 'clients', 'about', 'services', 'stats', 'products', 'projects', 'team', 'testimonials', 'gallery', 'cta', 'contact'],
+            ],
+        ],
 
         'corporate' => [
             'name' => 'Corporate',

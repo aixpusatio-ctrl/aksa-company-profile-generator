@@ -25,7 +25,7 @@ class DemoCompanySeeder extends Seeder
     {
         $user = User::query()->where('email', 'user@example.com')->firstOrFail();
 
-        $main = $this->createCompany($user, 'corporate-blue', 'corporate', [
+        $main = $this->createCompany($user, 'corporate-prime', 'corporate', [
             'name' => 'PT Example Indonesia',
             'slug' => 'example',
             'tagline' => 'Solusi Bisnis Terintegrasi untuk Indonesia',
@@ -64,13 +64,16 @@ class DemoCompanySeeder extends Seeder
             }
         }
 
-        $this->createCompany($user, 'technology', 'technology', [], published: false, wizardStep: 4);
+        $this->createCompany($user, 'cyber-modern', 'technology', [], published: false, wizardStep: 4);
 
         // Showcase websites (Example Websites on the landing page).
         foreach ([
-            ['construction', 'construction', 'Siti Rahma', 'siti@example.com'],
+            ['construction-pro', 'construction', 'Siti Rahma', 'siti@example.com'],
             ['creative-agency', 'creative-agency', 'Dimas Arya', 'dimas@example.com'],
             ['executive', 'executive', 'Hendra Gunawan', 'hendra@example.com'],
+            ['ai-company', 'ai-company', 'Rizky Pratama', 'rizky@example.com'],
+            ['healthcare-modern', 'healthcare-modern', 'Dewi Lestari', 'dewi@example.com'],
+            ['food-beverage', 'food-beverage', 'Agus Salim', 'agus@example.com'],
         ] as [$template, $layout, $name, $email]) {
             $owner = User::query()->updateOrCreate(['email' => $email], [
                 'name' => $name, 'password' => 'password', 'role' => User::ROLE_USER, 'email_verified_at' => now(),
@@ -83,7 +86,7 @@ class DemoCompanySeeder extends Seeder
     private function createCompany(User $user, string $templateSlug, string $layout, array $overrides, bool $published, int $wizardStep = 11): CompanyProfile
     {
         $template = Template::query()->where('slug', $templateSlug)->firstOrFail();
-        $demo = DemoContent::forLayout($layout);
+        $demo = DemoContent::for($layout);
         $attributes = array_merge($demo['company'], $overrides);
 
         $company = $this->companies->create($user, ['name' => $attributes['name'], 'slug' => $attributes['slug'] ?? null], $template);

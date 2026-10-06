@@ -18,6 +18,10 @@ class RegisteredUserController extends Controller
     {
         abort_unless((bool) setting('registration_enabled', true), 404);
 
+        if ($template = request()->string('template')->toString()) {
+            session(['register_template' => $template]);
+        }
+
         return view('auth.register');
     }
 
@@ -53,6 +57,11 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+
+        if ($template = $request->session()->pull('register_template')) {
+            return redirect()->route('websites.create', ['template' => $template])
+                ->with('success', 'Selamat datang! Lanjutkan dengan membuat company profile Anda.');
+        }
 
         return redirect()->route('dashboard')->with('success', 'Selamat datang! Akun Anda berhasil dibuat.');
     }

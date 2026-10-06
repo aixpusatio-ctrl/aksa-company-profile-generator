@@ -12,7 +12,7 @@ class SettingSeeder extends Seeder
         $settings->set([
             'app_name' => 'ProfilKu',
             'app_tagline' => 'Company Profile Generator',
-            'default_template' => 'corporate-blue',
+            'default_template' => 'corporate-prime',
             'support_email' => 'support@example.com',
             'registration_enabled' => '1',
             'media_disk' => 'public',

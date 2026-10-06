@@ -42,6 +42,14 @@ class CompanyProfileService
                 ->all();
         }
 
+        if ($tab === 'about' && array_key_exists('highlights', $data)) {
+            $data['highlights'] = collect($data['highlights'] ?? [])
+                ->map(fn ($row) => ['value' => trim((string) ($row['value'] ?? '')), 'label' => trim((string) ($row['label'] ?? ''))])
+                ->filter(fn ($row) => $row['value'] !== '' && $row['label'] !== '')
+                ->values()
+                ->all() ?: null;
+        }
+
         if ($tab === 'branding') {
             $data['branding'] = array_merge($company->branding ?? [], array_filter($data['branding'] ?? [], fn ($v) => $v !== null));
         }

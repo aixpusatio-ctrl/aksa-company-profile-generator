@@ -53,6 +53,9 @@ class ProfileTabs
                 'mission' => ['nullable', 'string', 'max:10000'],
                 'history' => ['nullable', 'string', 'max:20000'],
                 'company_values' => ['nullable', 'string', 'max:10000'],
+                'highlights' => ['nullable', 'array', 'max:6'],
+                'highlights.*.value' => ['nullable', 'string', 'max:20'],
+                'highlights.*.label' => ['nullable', 'string', 'max:60'],
             ],
             'contact' => [
                 'address' => ['nullable', 'string', 'max:255'],
@@ -76,6 +79,7 @@ class ProfileTabs
                 'branding.body_font' => ['nullable', Rule::in(config('website-templates.fonts'))],
                 'branding.button_style' => ['nullable', Rule::in(array_keys(config('website-templates.button_styles')))],
                 'branding.border_radius' => ['nullable', Rule::in(array_keys(config('website-templates.radii')))],
+                'hero_video' => ['nullable', 'url:https', 'max:500', 'regex:/(\.(mp4|webm)(\?.*)?$)|youtube\.com|youtu\.be|vimeo\.com/i'],
             ],
             'seo' => [
                 'seo_title' => ['nullable', 'string', 'max:120'],

@@ -32,13 +32,13 @@ class Brand
         return collect($vars)->map(fn ($value, $key) => $key.':'.$value)->implode(';');
     }
 
-    public static function fontsUrl(array $brand): ?string
+    public static function fontsUrl(array $brand, array $extra = []): ?string
     {
-        $allowed = config('website-templates.fonts');
-        $fonts = collect([$brand['heading_font'] ?? null, $brand['body_font'] ?? null])
-            ->filter(fn ($font) => in_array($font, $allowed, true))
+        $registry = config('website-templates.font_registry');
+        $fonts = collect([$brand['heading_font'] ?? null, $brand['body_font'] ?? null, ...$extra])
+            ->filter(fn ($font) => isset($registry[$font]))
             ->unique()
-            ->map(fn ($font) => 'family='.str_replace(' ', '+', $font).':ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400');
+            ->map(fn ($font) => 'family='.str_replace(' ', '+', $font).':wght@'.$registry[$font][0]);
 
         return $fonts->isEmpty() ? null : 'https://fonts.googleapis.com/css2?'.$fonts->implode('&').'&display=swap';
     }
@@ -59,9 +59,13 @@ class Brand
 
     private static function fontStack(string $font): string
     {
-        $font = in_array($font, config('website-templates.fonts'), true) ? $font : 'Inter';
-        $serif = in_array($font, ['Playfair Display', 'Lora', 'Cormorant Garamond', 'Libre Baskerville'], true);
+        $registry = config('website-templates.font_registry');
+        $font = isset($registry[$font]) ? $font : 'Inter';
 
-        return "'{$font}',".($serif ? 'Georgia,serif' : 'ui-sans-serif,system-ui,sans-serif');
+        return "'{$font}',".match ($registry[$font][1]) {
+            'serif' => 'Georgia,serif',
+            'mono' => 'ui-monospace,SFMono-Regular,Menlo,monospace',
+            default => 'ui-sans-serif,system-ui,sans-serif',
+        };
     }
 }

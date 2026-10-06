@@ -15,7 +15,7 @@ class TemplateGalleryController extends Controller
         $category = $request->string('category')->toString() ?: null;
 
         return view('dashboard.templates.index', [
-            'templates' => $templates->published($category, $request->string('q')->toString() ?: null),
+            'templates' => $templates->published(),
             'categories' => TemplateCategory::query()->orderBy('sort_order')->get(),
             'activeCategory' => $category,
         ]);

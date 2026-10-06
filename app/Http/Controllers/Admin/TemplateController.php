@@ -8,8 +8,12 @@ use App\Models\TemplateCategory;
 use App\Services\MediaService;
 use App\Services\TemplateService;
 use App\Support\Activity;
+use App\Support\DemoContent;
+use App\Support\Website\ComponentRegistry;
+use App\Support\Website\DesignSystem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -24,7 +28,7 @@ class TemplateController extends Controller
     {
         $templates = Template::query()
             ->with('category')
-            ->withCount('companyProfiles')
+            ->withCount(['companyProfiles', 'companyProfiles as users_count' => fn ($q) => $q->select(DB::raw('count(distinct user_id)'))])
             ->when($request->string('q')->toString(), fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
             ->when($request->integer('category'), fn ($q, $category) => $q->where('template_category_id', $category))
             ->orderBy('sort_order')->orderBy('name')
@@ -107,6 +111,8 @@ class TemplateController extends Controller
             'categories' => TemplateCategory::query()->orderBy('sort_order')->get(),
             'layouts' => $this->templates->layouts(),
             'settings' => $template->resolvedSettings(),
+            'demoOptions' => collect(DemoContent::layouts())->merge(DemoContent::dataKeys())->unique()->sort()
+                ->mapWithKeys(fn ($key) => [$key => ucwords(str_replace('-', ' ', $key))])->all(),
         ];
     }
 
@@ -118,6 +124,13 @@ class TemplateController extends Controller
             'layout' => ['required', Rule::in(array_keys($this->templates->layouts()))],
             'template_category_id' => ['nullable', 'exists:template_categories,id'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'style' => ['nullable', 'string', 'max:255'],
+            'demo' => ['nullable', 'string', 'max:60', Rule::in(array_merge(DemoContent::layouts(), DemoContent::dataKeys()))],
+            'mobile_thumbnail' => ['nullable', MediaService::imageRule()],
+            'mobile_thumbnail_remove' => ['nullable', 'boolean'],
+            'config' => ['nullable', 'array'],
+            'config.components' => ['nullable', 'array'],
+            'config.design' => ['nullable', 'array'],
             'preview_url' => ['nullable', 'url:http,https', 'max:255'],
             'status' => ['required', Rule::in([Template::STATUS_DRAFT, Template::STATUS_PUBLISHED])],
             'is_featured' => ['nullable', 'boolean'],
@@ -138,7 +151,15 @@ class TemplateController extends Controller
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
         $data['settings'] = array_filter($data['settings'] ?? [], fn ($v) => filled($v));
         $data['thumbnail'] = $this->media->resolveImageInput($data, 'thumbnail', $request->user(), null, $template?->thumbnail);
-        unset($data['thumbnail_remove']);
+        $data['mobile_thumbnail'] = $this->media->resolveImageInput($data, 'mobile_thumbnail', $request->user(), null, $template?->mobile_thumbnail);
+        unset($data['thumbnail_remove'], $data['mobile_thumbnail_remove']);
+
+        // Keep only known component variants & design tokens.
+        $components = collect($data['config']['components'] ?? [])
+            ->filter(fn ($variant, $slot) => is_string($variant) && ComponentRegistry::exists($slot, $variant))->all();
+        $design = collect($data['config']['design'] ?? [])
+            ->filter(fn ($value, $token) => in_array($value, DesignSystem::OPTIONS[$token] ?? [], true))->all();
+        $data['config'] = $data['layout'] === 'composer' ? ['components' => $components, 'design' => $design] : null;
 
         return $data;
     }

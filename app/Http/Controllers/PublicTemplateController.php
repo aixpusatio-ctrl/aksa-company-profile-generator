@@ -15,7 +15,8 @@ class PublicTemplateController extends Controller
     public function index(Request $request, TemplateService $templates): View
     {
         return view('templates.index', [
-            'templates' => $templates->published($request->string('category')->toString() ?: null, $request->string('q')->toString() ?: null),
+            // Filtering & search happen instantly in the browser.
+            'templates' => $templates->published(),
             'categories' => TemplateCategory::query()->whereHas('templates', fn ($q) => $q->published())->orderBy('sort_order')->get(),
             'activeCategory' => $request->string('category')->toString(),
         ]);
@@ -27,7 +28,8 @@ class PublicTemplateController extends Controller
 
         return view('templates.show', [
             'template' => $template->load('category'),
-            'related' => Template::query()->published()->whereKeyNot($template->id)->ordered()->take(3)->get(),
+            'related' => Template::query()->published()->whereKeyNot($template->id)
+                ->where('template_category_id', $template->template_category_id)->ordered()->take(3)->get(),
         ]);
     }
 
@@ -38,11 +40,41 @@ class PublicTemplateController extends Controller
     {
         $this->ensureVisible($request, $template);
 
+        $this->applyPreviewOverrides($request, $template);
+
         $company = $templates->sampleCompany($template);
         $page = $request->string('page')->toString() ?: null;
         $site = SiteContext::template(route('templates.render', $template), $page === null, $page);
 
-        return $renderer->render($company, $site, $page);
+        $response = response($renderer->render($company, $site, $page)->render());
+
+        // Previews of published templates are identical for everyone: let browsers cache them briefly.
+        if ($template->isPublished() && ! $request->hasAny(['c', 'd'])) {
+            $response->setPublic()->setMaxAge(300);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Admins (and local development) can try other component variants or
+     * design tokens without saving: ?c[hero]=editorial&d[theme]=dark
+     */
+    private function applyPreviewOverrides(Request $request, Template $template): void
+    {
+        if (! $template->isComposed() || ! (app()->isLocal() || $request->user()?->isAdmin())) {
+            return;
+        }
+
+        $components = array_filter((array) $request->query('c', []), 'is_string');
+        $design = array_filter((array) $request->query('d', []), 'is_string');
+
+        if ($components || $design) {
+            $config = $template->config ?? [];
+            $config['components'] = array_merge($config['components'] ?? [], $components);
+            $config['design'] = array_merge($config['design'] ?? [], $design);
+            $template->config = $config;
+        }
     }
 
     private function ensureVisible(Request $request, Template $template): void

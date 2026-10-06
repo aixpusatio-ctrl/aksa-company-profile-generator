@@ -30,7 +30,7 @@ class CompanyProfile extends Model
     ];
 
     protected $fillable = [
-        'template_id', 'name', 'slug', 'tagline', 'description', 'logo', 'favicon', 'hero_image',
+        'template_id', 'name', 'slug', 'tagline', 'description', 'logo', 'favicon', 'hero_image', 'hero_video', 'highlights',
         'established_year', 'phone', 'email', 'whatsapp', 'address', 'city', 'province', 'country',
         'postal_code', 'latitude', 'longitude', 'google_maps_url', 'website', 'working_hours',
         'social_links', 'about', 'vision', 'mission', 'history', 'company_values', 'branding',
@@ -42,6 +42,8 @@ class CompanyProfile extends Model
     {
         return [
             'social_links' => 'array',
+            'highlights' => 'array',
+            'shop_enabled' => 'boolean',
             'branding' => 'array',
             'published_at' => 'datetime',
             'established_year' => 'integer',
@@ -139,6 +141,73 @@ class CompanyProfile extends Model
         return $this->hasMany(PageView::class);
     }
 
+    // ---------------------------------------------------------------- Shop
+
+    public function shopSetting(): HasOne
+    {
+        return $this->hasOne(Shop\ShopSetting::class);
+    }
+
+    public function shopProducts(): HasMany
+    {
+        return $this->hasMany(Shop\Product::class);
+    }
+
+    public function productCategories(): HasMany
+    {
+        return $this->hasMany(Shop\ProductCategory::class)->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function productTags(): HasMany
+    {
+        return $this->hasMany(Shop\ProductTag::class)->orderBy('name');
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Shop\Order::class)->latest();
+    }
+
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Shop\Customer::class);
+    }
+
+    public function coupons(): HasMany
+    {
+        return $this->hasMany(Shop\Coupon::class)->latest();
+    }
+
+    public function taxes(): HasMany
+    {
+        return $this->hasMany(Shop\Tax::class);
+    }
+
+    public function shippingMethods(): HasMany
+    {
+        return $this->hasMany(Shop\ShippingMethod::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function paymentMethods(): HasMany
+    {
+        return $this->hasMany(Shop\PaymentMethod::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function productReviews(): HasMany
+    {
+        return $this->hasMany(Shop\Review::class)->latest();
+    }
+
+    public function inventoryMovements(): HasMany
+    {
+        return $this->hasMany(Shop\InventoryMovement::class)->latest('created_at');
+    }
+
+    public function hasShop(): bool
+    {
+        return (bool) $this->shop_enabled;
+    }
+
     // ---------------------------------------------------------------- Scopes
 
     public function scopePublished(Builder $query): Builder
@@ -201,6 +270,11 @@ class CompanyProfile extends Model
         return $layout && config("website-templates.layouts.{$layout}") ? $layout : 'corporate';
     }
 
+    public function isComposed(): bool
+    {
+        return $this->layout() === 'composer';
+    }
+
     public function socialLinks(): array
     {
         return array_filter($this->social_links ?? [], fn ($url) => filled($url));
@@ -240,6 +314,78 @@ class CompanyProfile extends Model
         $query = $this->fullAddress();
 
         return $query ? 'https://maps.google.com/maps?q='.urlencode($query).'&z=15&output=embed' : null;
+    }
+
+    /**
+     * Key figures for stats sections: the company's own highlights, or
+     * figures derived from its real data when none were entered.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public function stats(): array
+    {
+        $own = collect($this->highlights ?? [])
+            ->filter(fn ($item) => filled($item['value'] ?? null) && filled($item['label'] ?? null))
+            ->map(fn ($item) => ['value' => (string) $item['value'], 'label' => (string) $item['label']])
+            ->values();
+
+        if ($own->isNotEmpty()) {
+            return $own->take(6)->all();
+        }
+
+        return collect([
+            $this->established_year ? ['value' => (date('Y') - $this->established_year).'+', 'label' => 'Tahun pengalaman'] : null,
+            $this->projects->isNotEmpty() ? ['value' => (string) $this->projects->count(), 'label' => 'Proyek unggulan'] : null,
+            $this->services->isNotEmpty() ? ['value' => (string) $this->services->count(), 'label' => 'Layanan'] : null,
+            $this->team->isNotEmpty() ? ['value' => (string) $this->team->count(), 'label' => 'Pimpinan & ahli'] : null,
+            $this->clients() ? ['value' => count($this->clients()).'+', 'label' => 'Klien & mitra'] : null,
+        ])->filter()->values()->take(4)->all();
+    }
+
+    /**
+     * Client / partner names taken from projects and testimonials.
+     *
+     * @return array<int, string>
+     */
+    public function clients(): array
+    {
+        return collect($this->projects->pluck('client'))
+            ->merge($this->testimonials->pluck('company'))
+            ->filter()
+            ->map(fn ($name) => trim($name))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /** 'file' (mp4/webm), 'youtube', 'vimeo' or null. */
+    public function heroVideoType(): ?string
+    {
+        $url = (string) $this->hero_video;
+
+        return match (true) {
+            $url === '' => null,
+            (bool) preg_match('/\.(mp4|webm)(\?.*)?$/i', $url) => 'file',
+            str_contains($url, 'youtube.com') || str_contains($url, 'youtu.be') => 'youtube',
+            str_contains($url, 'vimeo.com') => 'vimeo',
+            default => null,
+        };
+    }
+
+    /** Embeddable player URL for YouTube / Vimeo hero videos. */
+    public function heroVideoEmbedUrl(): ?string
+    {
+        $url = (string) $this->hero_video;
+
+        if ($this->heroVideoType() === 'youtube' && preg_match('~(?:v=|youtu\.be/|embed/)([A-Za-z0-9_-]{11})~', $url, $m)) {
+            return 'https://www.youtube-nocookie.com/embed/'.$m[1].'?autoplay=1&rel=0';
+        }
+
+        if ($this->heroVideoType() === 'vimeo' && preg_match('~vimeo\.com/(?:video/)?(\d+)~', $url, $m)) {
+            return 'https://player.vimeo.com/video/'.$m[1].'?autoplay=1';
+        }
+
+        return null;
     }
 
     public function missionItems(): array

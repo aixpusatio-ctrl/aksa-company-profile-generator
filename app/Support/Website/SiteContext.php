@@ -80,6 +80,18 @@ class SiteContext
         return $this->isLive() ? $this->baseUrl.'/'.ltrim($path, '/') : $this->home();
     }
 
+    /** URL of a shop page on the live website, e.g. shop('product/kemeja-linen'). */
+    public function shop(string $path = ''): string
+    {
+        return $this->isLive() ? $this->baseUrl.'/shop'.($path !== '' ? '/'.ltrim($path, '/') : '') : '#';
+    }
+
+    /** URL of a customer account page. */
+    public function account(string $path = ''): string
+    {
+        return $this->isLive() ? $this->baseUrl.'/account'.($path !== '' ? '/'.ltrim($path, '/') : '') : '#';
+    }
+
     /** Contact form endpoint (forms are disabled while previewing). */
     public function contactAction(): string
     {
