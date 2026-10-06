@@ -1,0 +1,70 @@
+/*
+ | Styles for generated company profile websites.
+ | Brand values come from CSS variables printed by websites/partials/head
+ | (primary/secondary color, fonts, radius, button style) so every template
+ | adapts to the company's branding without rebuilding assets.
+ */
+@import 'tailwindcss' source(none);
+
+@source '../views/websites';
+@source '../views/components/site';
+@source '../views/components/icon.blade.php';
+@source '../../app/Support/Website';
+
+@theme inline {
+    --color-primary: var(--brand-primary);
+    --color-secondary: var(--brand-secondary);
+    --color-on-primary: var(--brand-on-primary);
+    --color-on-secondary: var(--brand-on-secondary);
+    --font-heading: var(--brand-font-heading);
+    --font-body: var(--brand-font-body);
+    --radius-brand: var(--brand-radius);
+    --radius-btn: var(--brand-btn-radius);
+}
+
+@theme {
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --animate-marquee: marquee 30s linear infinite;
+
+    @keyframes marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    font-family: var(--brand-font-body);
+}
+
+section[id] {
+    scroll-margin-top: 5rem;
+}
+
+/* Rich text written in the dashboard editor */
+.site-prose { line-height: 1.75; }
+.site-prose > * + * { margin-top: 1em; }
+.site-prose h1, .site-prose h2, .site-prose h3 { font-family: var(--brand-font-heading); font-weight: 700; line-height: 1.25; margin-top: 1.6em; }
+.site-prose h1 { font-size: 1.875rem; }
+.site-prose h2 { font-size: 1.5rem; }
+.site-prose h3 { font-size: 1.25rem; }
+.site-prose ul { list-style: disc; padding-left: 1.4em; }
+.site-prose ol { list-style: decimal; padding-left: 1.4em; }
+.site-prose li + li { margin-top: .35em; }
+.site-prose a { color: var(--brand-primary); text-decoration: underline; text-underline-offset: 3px; }
+.site-prose blockquote { border-left: 3px solid var(--brand-primary); padding-left: 1em; font-style: italic; opacity: .9; }
+.site-prose img { border-radius: var(--brand-radius); }
+.site-prose strong { font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .animate-marquee { animation: none; }
+}
