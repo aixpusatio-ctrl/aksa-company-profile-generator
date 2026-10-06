@@ -128,12 +128,12 @@
                             </div>
                             <div>
                                 <label for="co-phone" class="shop-label">No. HP {{ $requirePhone ? '*' : '' }}</label>
-                                <input id="co-phone" type="tel" name="phone" value="{{ $prefill['phone'] }}" @required($requirePhone) maxlength="30" pattern="[0-9+\-\s()]+" autocomplete="tel" placeholder="08xxxxxxxxxx" class="shop-input" @error('phone') aria-invalid="true" @enderror>
+                                <input id="co-phone" type="tel" name="phone" value="{{ $prefill['phone'] }}" @required($requirePhone) maxlength="30" pattern="[0-9+\s\-\(\)]+" autocomplete="tel" placeholder="08xxxxxxxxxx" class="shop-input" @error('phone') aria-invalid="true" @enderror>
                                 @error('phone')<p class="shop-error">{{ $message }}</p>@enderror
                             </div>
                             <div class="sm:col-span-2">
                                 <label for="co-wa" class="shop-label">WhatsApp <span class="font-normal text-muted">(opsional, jika berbeda)</span></label>
-                                <input id="co-wa" type="tel" name="whatsapp" value="{{ $prefill['whatsapp'] }}" maxlength="30" pattern="[0-9+\-\s()]+" class="shop-input">
+                                <input id="co-wa" type="tel" name="whatsapp" value="{{ $prefill['whatsapp'] }}" maxlength="30" pattern="[0-9+\s\-\(\)]+" class="shop-input">
                             </div>
                         </div>
                         <div x-cloak x-show="enhanced" class="mt-6 flex justify-end">

@@ -4,9 +4,11 @@ namespace Tests\Feature\Shop;
 
 use App\Models\CompanyProfile;
 use App\Models\Shop\Coupon;
+use App\Models\Shop\Customer;
 use App\Models\Shop\Order;
 use App\Models\Shop\Product;
 use App\Models\User;
+use App\Services\Shop\CheckoutService;
 use App\Services\Shop\OrderService;
 use App\Services\Shop\ProductService;
 use App\Services\Shop\ShopService;
@@ -147,7 +149,7 @@ class ShopCheckoutTest extends TestCase
         $order = Order::query()->firstOrFail();
         $response->assertRedirect($this->url('/shop/order/'.$order->order_number.'?token='.$order->access_token.'&wa=1'));
         $this->assertSame('whatsapp', $order->channel);
-        $this->assertStringContainsString($order->order_number, urldecode((string) app(\App\Services\Shop\CheckoutService::class)->whatsappUrl($this->company, $order)));
+        $this->assertStringContainsString($order->order_number, urldecode((string) app(CheckoutService::class)->whatsappUrl($this->company, $order)));
     }
 
     public function test_cancelling_an_order_releases_reserved_stock(): void
@@ -196,5 +198,41 @@ class ShopCheckoutTest extends TestCase
 
         $this->assertSame(120000.0, (float) Order::query()->firstOrFail()->subtotal);
         $this->assertSame(1, $large->fresh()->reserved_stock);
+    }
+
+    public function test_guest_checkout_can_be_disabled(): void
+    {
+        $product = $this->product();
+        $settings = $this->company->shopSetting()->first();
+        $settings->update(['options' => array_merge($settings->options ?? [], ['guest_checkout' => false])]);
+
+        $this->postJson($this->url('/shop/cart'), ['product_id' => $product->id])->assertOk();
+        $this->post($this->url('/shop/checkout'), $this->checkoutData())->assertRedirect($this->url('/account/login'));
+        $this->assertSame(0, Order::query()->count());
+    }
+
+    public function test_storefront_pages_render(): void
+    {
+        $product = $this->product();
+
+        foreach (['/shop', '/shop/products', '/shop/product/'.$product->slug, '/shop/cart', '/shop/order/track', '/shop/wishlist', '/account/login', '/account/register'] as $path) {
+            $this->get($this->url($path))->assertOk();
+        }
+        $this->get($this->url('/account/orders'))->assertRedirect();
+    }
+
+    public function test_customer_cart_is_merged_on_login_and_cannot_log_into_other_shop(): void
+    {
+        $product = $this->product();
+        Customer::query()->create(['company_profile_id' => $this->company->id, 'name' => 'Rina', 'email' => 'rina@example.com', 'password' => 'password']);
+
+        $this->postJson($this->url('/shop/cart'), ['product_id' => $product->id])->assertOk();
+        $this->post($this->url('/account/login'), ['email' => 'rina@example.com', 'password' => 'password'])->assertRedirect();
+        $this->assertAuthenticated('customer');
+        $this->getJson($this->url('/shop/cart/summary'))->assertOk()->assertJsonPath('count', 1);
+
+        $other = $this->companyFor($this->owner, ['slug' => 'toko-lain'], published: true);
+        app(ShopService::class)->enable($other);
+        $this->get($this->tenantUrl($other, '/account/orders'))->assertRedirect();
     }
 }

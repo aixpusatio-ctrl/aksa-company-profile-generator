@@ -134,8 +134,7 @@ export default function registerShop(Alpine) {
                 }
                 this.applyCart(json);
                 if (this.drawerMode) {
-                    this.drawer = true;
-                    this.toast(json.message);
+                    this.drawer = true; // the drawer itself confirms the add
                 } else {
                     this.toast(json.message, 'success', { href: this.urls.cart, label: 'Lihat keranjang' });
                 }
@@ -295,6 +294,11 @@ export default function registerShop(Alpine) {
             if (this.hasVariants) return !!this.variant && this.variant.available > 0;
             return cfg.inStock;
         },
+        /** Buttons are disabled only when the (chosen) item cannot be bought. */
+        get blocked() {
+            if (this.hasVariants) return !!this.variant && !this.canBuy || (this.complete && !this.variant);
+            return !this.canBuy;
+        },
         get stockLabel() {
             if (this.hasVariants && !this.complete) return 'Pilih varian';
             if (this.hasVariants && !this.variant) return 'Kombinasi tidak tersedia';
@@ -337,6 +341,7 @@ export default function registerShop(Alpine) {
         submit(event) {
             if (this.hasVariants && !this.variant) {
                 this.$store.shop?.toast('Pilih varian produk terlebih dahulu.', 'error');
+                this.$root.querySelector('fieldset')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
             if (this.$store.shop?.enabled) this.$store.shop.add(event.target, event.submitter);

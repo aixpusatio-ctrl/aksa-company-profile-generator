@@ -432,7 +432,7 @@ terasa sebagai bagian website — bukan aplikasi terpisah. Saat aktif, menu webs
 | `/shop/products`, `/shop/category/{slug}` | Katalog + pencarian, filter (kategori, harga, stok, rating, brand, atribut) & sorting |
 | `/shop/product/{slug}` | Detail produk: galeri, varian, qty, add to cart / buy now / WhatsApp / contact, spesifikasi, ulasan, related, recently viewed, JSON-LD |
 | `/shop/cart`, `/shop/checkout` | Keranjang (page/drawer sesuai template) & checkout multi-step, kupon, ongkir, pajak |
-| `/shop/order/{number}?token=…`, `/shop/track` | Halaman pesanan (butuh token rahasia atau login pemilik) & lacak pesanan |
+| `/shop/order/{number}?token=…`, `/shop/order/track` | Halaman pesanan (butuh token rahasia atau login pemilik) & lacak pesanan |
 | `/account/*` | Akun pelanggan: profil, pesanan, wishlist, alamat, ulasan (guard `customer`, terpisah dari user/admin) |
 
 **Seller dashboard** (`/dashboard/shop`, `/dashboard/websites/{company}/shop/*`): overview + grafik,

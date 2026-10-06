@@ -104,7 +104,7 @@
                     <div class="mt-4 flex flex-wrap items-center gap-2">
                         @foreach ($chips as $label => $removeUrl)
                             <a href="{{ $removeUrl }}" class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/15">
-                                {{ $label }} <x-icon name="x" class="size-3" />
+                                {{ $label }} <x-shop.icon name="close" class="size-3" />
                             </a>
                         @endforeach
                         <a href="{{ $baseUrl }}" class="text-xs font-semibold text-muted underline underline-offset-2 hover:text-ink">Hapus semua</a>
@@ -141,7 +141,7 @@
                  class="absolute inset-y-0 left-0 flex w-[88%] max-w-sm flex-col bg-surface text-ink shadow-2xl">
                 <div class="flex items-center justify-between border-b border-line px-5 py-4">
                     <h2 class="font-heading text-lg font-bold">Filter</h2>
-                    <button type="button" @click="filters = false" class="inline-flex size-9 items-center justify-center rounded-full hover:bg-surface-alt" aria-label="Tutup"><x-icon name="x" class="size-5" /></button>
+                    <button type="button" @click="filters = false" class="inline-flex size-9 items-center justify-center rounded-full hover:bg-surface-alt" aria-label="Tutup"><x-shop.icon name="close" class="size-5" /></button>
                 </div>
                 <div class="flex-1 overflow-y-auto px-5 py-5">
                     @include('websites.shop.partials.filters', ['formId' => 'filters-mobile'])

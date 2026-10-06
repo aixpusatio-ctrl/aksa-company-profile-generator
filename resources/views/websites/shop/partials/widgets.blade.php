@@ -44,7 +44,7 @@
                 <header class="flex items-center justify-between border-b border-line px-5 py-4">
                     <h2 class="font-heading text-lg font-bold">Keranjang <span class="text-sm font-normal text-muted" x-text="'(' + $store.shop.count + ')'"></span></h2>
                     <button type="button" class="inline-flex size-9 items-center justify-center rounded-full hover:bg-surface-alt" @click="$store.shop.drawer = false" aria-label="Tutup">
-                        <x-icon name="x" class="size-5" />
+                        <x-shop.icon name="close" class="size-5" />
                     </button>
                 </header>
 
@@ -117,7 +117,7 @@
                  class="shop-toast pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-brand border px-4 py-3 text-sm shadow-xl {{ $flashError ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-line bg-card text-ink' }}">
                 <x-icon :name="$flashError ? 'warning' : 'check-circle'" class="mt-0.5 size-5 shrink-0 {{ $flashError ? 'text-rose-500' : 'text-emerald-500' }}" />
                 <p class="flex-1">{{ $flashError ?: session('shop_toast') }}</p>
-                <button type="button" @click="show = false" class="text-current/60 hover:text-current" aria-label="Tutup"><x-icon name="x" class="size-4" /></button>
+                <button type="button" @click="show = false" class="opacity-60 hover:opacity-100" aria-label="Tutup"><x-shop.icon name="close" class="size-4" /></button>
             </div>
         @endif
         <template x-for="t in $store.shop.toasts" :key="t.id">
@@ -131,7 +131,7 @@
                     <span x-text="t.message"></span>
                     <template x-if="t.link"><a :href="t.link.href" class="ml-1 font-semibold text-primary underline-offset-2 hover:underline" x-text="t.link.label"></a></template>
                 </p>
-                <button type="button" @click="$store.shop.dismiss(t.id)" class="opacity-60 hover:opacity-100" aria-label="Tutup"><x-icon name="x" class="size-4" /></button>
+                <button type="button" @click="$store.shop.dismiss(t.id)" class="opacity-60 hover:opacity-100" aria-label="Tutup"><x-shop.icon name="close" class="size-4" /></button>
             </div>
         </template>
     </div>

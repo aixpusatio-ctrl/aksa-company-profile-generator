@@ -179,12 +179,12 @@
                             </div>
                             <div class="grid min-w-0 flex-1 gap-3 {{ $ctaCart && $ctaBuy ? 'grid-cols-2' : 'grid-cols-1' }}">
                                 @if ($ctaCart)
-                                    <button type="submit" class="{{ $ds->btn($ctaBuy ? 'secondary' : 'primary', 'h-12 w-full !px-3') }}" :disabled="!canBuy || $store.shop.busy" :class="!canBuy && 'opacity-50 cursor-not-allowed'" @disabled(! $product->isInStock())>
+                                    <button type="submit" class="{{ $ds->btn($ctaBuy ? 'secondary' : 'primary', 'h-12 w-full !px-3') }}" :disabled="blocked || $store.shop.busy" :class="blocked && 'opacity-50 cursor-not-allowed'" @disabled(! $product->isInStock())>
                                         <x-shop.icon name="bag" class="size-4" /> Keranjang
                                     </button>
                                 @endif
                                 @if ($ctaBuy)
-                                    <button type="submit" name="buy_now" value="1" class="{{ $ds->btn('primary', 'h-12 w-full !px-3') }}" :disabled="!canBuy || $store.shop.busy" :class="!canBuy && 'opacity-50 cursor-not-allowed'" @disabled(! $product->isInStock())>
+                                    <button type="submit" name="buy_now" value="1" class="{{ $ds->btn('primary', 'h-12 w-full !px-3') }}" :disabled="blocked || $store.shop.busy" :class="blocked && 'opacity-50 cursor-not-allowed'" @disabled(! $product->isInStock())>
                                         Beli Sekarang
                                     </button>
                                 @endif
@@ -358,7 +358,7 @@
 
         {{-- Lightbox --}}
         <div x-cloak x-show="lightbox" x-transition.opacity class="fixed inset-0 z-[90] flex items-center justify-center bg-black/90 p-4" @click.self="lightbox = false" @keydown.escape.window="lightbox = false" role="dialog" aria-modal="true">
-            <button type="button" class="absolute top-4 right-4 inline-flex size-10 items-center justify-center rounded-full bg-white/10 text-white" @click="lightbox = false" aria-label="Tutup"><x-icon name="x" class="size-6" /></button>
+            <button type="button" class="absolute top-4 right-4 inline-flex size-10 items-center justify-center rounded-full bg-white/10 text-white" @click="lightbox = false" aria-label="Tutup"><x-shop.icon name="close" class="size-6" /></button>
             <img :src="images[active]" alt="{{ $product->name }}" class="max-h-[85vh] max-w-full rounded-brand object-contain">
         </div>
 
@@ -370,7 +370,7 @@
                         <p class="truncate text-xs text-muted">{{ $product->name }}</p>
                         <p class="truncate font-heading text-base font-bold text-ink" x-text="price">{{ $product->formattedPrice() }}</p>
                     </div>
-                    <button type="submit" form="buy-form" @if ($ctaBuy && ! $ctaCart) name="buy_now" value="1" @endif class="{{ $ds->btn('primary', '!px-5') }}" :disabled="!canBuy || $store.shop.busy" :class="!canBuy && 'opacity-50'" @disabled(! $product->isInStock())>
+                    <button type="submit" form="buy-form" @if ($ctaBuy && ! $ctaCart) name="buy_now" value="1" @endif class="{{ $ds->btn('primary', '!px-5') }}" :disabled="blocked || $store.shop.busy" :class="blocked && 'opacity-50'" @disabled(! $product->isInStock())>
                         <x-shop.icon name="bag" class="size-4" /> {{ $ctaCart ? '+ Keranjang' : 'Beli Sekarang' }}
                     </button>
                 </div>

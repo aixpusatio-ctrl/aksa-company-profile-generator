@@ -122,6 +122,11 @@ class CheckoutController extends ShopController
 
     private function validated(Request $request, bool $whatsapp): array
     {
+        $company = $this->company();
+        if (! $company->shopSetting->option('guest_checkout', true) && ! $this->carts->customer($company)) {
+            abort(redirect()->to($this->site($request)->account('login'))->with('shop_toast', 'Silakan masuk untuk melanjutkan checkout.'));
+        }
+
         $requirePhone = (bool) $this->company()->shopSetting->option('require_phone');
 
         return $request->validate([
