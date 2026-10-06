@@ -18,9 +18,9 @@ class Money
 
     private static string $currency = 'IDR';
 
-    public static function setCurrency(string $currency): void
+    public static function setCurrency(?string $currency): void
     {
-        self::$currency = isset(self::CURRENCIES[$currency]) ? $currency : 'IDR';
+        self::$currency = $currency !== null && isset(self::CURRENCIES[$currency]) ? $currency : 'IDR';
     }
 
     public static function currency(): string

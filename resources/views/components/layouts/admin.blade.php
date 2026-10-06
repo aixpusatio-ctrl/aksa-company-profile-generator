@@ -11,6 +11,12 @@
             ['route' => 'admin.domains.index', 'label' => 'Domains', 'icon' => 'globe'],
             ['route' => 'admin.subscriptions.index', 'label' => 'Subscriptions', 'icon' => 'credit-card'],
         ],
+        'E-Commerce' => [
+            ['route' => 'admin.shop.shops', 'label' => 'Shops', 'icon' => 'briefcase'],
+            ['route' => 'admin.shop.products', 'label' => 'Products', 'icon' => 'cube'],
+            ['route' => 'admin.shop.orders', 'active' => ['admin.shop.orders', 'admin.shop.orders.*'], 'label' => 'Orders', 'icon' => 'list'],
+            ['route' => 'admin.shop.customers', 'label' => 'Customers', 'icon' => 'user'],
+        ],
         'Templates' => [
             ['route' => 'admin.templates.index', 'active' => ['admin.templates.*'], 'label' => 'Templates', 'icon' => 'template'],
             ['route' => 'admin.categories.index', 'label' => 'Template Categories', 'icon' => 'tag'],

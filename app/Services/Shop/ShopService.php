@@ -22,10 +22,14 @@ class ShopService
     {
         $settings = $company->relationLoaded('shopSetting') && $company->shopSetting
             ? $company->shopSetting
-            : ShopSetting::query()->firstOrCreate(['company_profile_id' => $company->id], ['name' => $company->name]);
+            : ShopSetting::query()->firstOrCreate(['company_profile_id' => $company->id], ['name' => $company->name, 'currency' => 'IDR']);
+
+        if ($settings->wasRecentlyCreated) {
+            $settings->refresh(); // load column defaults (currency, order prefix, ...)
+        }
 
         $company->setRelation('shopSetting', $settings);
-        Money::setCurrency($settings->currency);
+        Money::setCurrency($settings->currency ?? 'IDR');
 
         return $settings;
     }
@@ -39,7 +43,7 @@ class ShopService
         DB::transaction(function () use ($company) {
             $this->settings($company);
             $this->ensureDefaults($company);
-            $company->update(['shop_enabled' => true]);
+            $company->forceFill(['shop_enabled' => true])->save();
         });
 
         Activity::log('shop.enabled', "Online shop {$company->name} diaktifkan", $company);
@@ -47,7 +51,7 @@ class ShopService
 
     public function disable(CompanyProfile $company): void
     {
-        $company->update(['shop_enabled' => false]);
+        $company->forceFill(['shop_enabled' => false])->save();
         Activity::log('shop.disabled', "Online shop {$company->name} dinonaktifkan", $company);
     }
 

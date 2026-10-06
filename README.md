@@ -24,9 +24,10 @@ dan opsional di **custom domain** (`www.perusahaan.com`).
 11. [Subdomain Configuration](#subdomain-configuration)
 12. [Custom Domain Architecture](#custom-domain-architecture)
 13. [Template System](#template-system)
-14. [Folder Structure](#folder-structure)
-15. [Testing](#testing)
-16. [Deployment](#deployment)
+14. [Online Shop](#online-shop)
+15. [Folder Structure](#folder-structure)
+16. [Testing](#testing)
+17. [Deployment](#deployment)
 
 ---
 
@@ -106,7 +107,7 @@ Company Profiles, Templates (CRUD, duplicate, publish/unpublish, featured), Temp
 Pages, Domains (verify/activate), Subscriptions, Media, Settings (nama aplikasi, logo, favicon,
 default template, default SEO, storage, konfigurasi sistem), System Logs.
 
-**13 template** (10 layout berbeda + 3 varian) — lihat [Template System](#template-system).
+**50 template** (10 layout crafted + 40 template composer berbasis komponen, 11 kategori) — lihat [Template System](#template-system).
 
 ---
 
@@ -223,12 +224,17 @@ Membuat:
 
 - 1 Admin + 1 Demo User (+3 user showcase)
 - 10 template category
-- 13 template (10 layout + 3 varian) — semua published
+- 50 template (11 kategori) — semua published, masing-masing dengan data demo perusahaan
 - Demo company **PT Example Indonesia** (`example`) lengkap: services, products, projects, team,
   testimonials, gallery, 3 custom pages, menu + submenu, 2 custom domain (active & pending),
   pesan kontak dan data analytics
 - Website draft (Technology) untuk demo wizard
 - 3 website showcase (Construction, Creative Agency, Executive) untuk “Example Websites”
+- 2 online shop demo (milik `user@example.com`): **Ruma Living** (`ruma-living`, template Retail Modern —
+  10 kategori bertingkat, 30 produk, varian, tag, kupon `WELCOME10`/`GRATISONGKIR`/`HEMAT50K`, PPN 11%)
+  dan **Maison Arunika** (`maison-arunika`, template Fashion Brand — produk dengan varian ukuran/warna),
+  masing-masing dengan pelanggan (password `password` untuk 3 pelanggan pertama), pesanan di berbagai
+  status, dan ulasan
 
 Konten demo per industri ada di `app/Support/DemoContent.php` (dipakai juga untuk preview template).
 
@@ -410,6 +416,50 @@ Komponen render:
 2. Daftarkan di `config/website-templates.php → layouts` (nama, kategori, deskripsi, defaults).
 3. Admin → Templates → Create Template → pilih layout `healthcare`.
 4. `npm run build`.
+
+---
+
+## Online Shop
+
+Setiap company profile bisa mengaktifkan toko online native (Dashboard → website → **Toko Online** →
+toggle ON). Toko memakai navbar, footer, warna, font dan design system template yang sama, sehingga
+terasa sebagai bagian website — bukan aplikasi terpisah. Saat aktif, menu website otomatis mendapat
+**Shop** (dengan sub-menu kategori) dan **Keranjang**.
+
+| URL (tenant host) | Isi |
+|---|---|
+| `/shop` | Homepage toko (section builder: hero, featured, kategori, best seller, new, sale, brand, testimoni, newsletter) |
+| `/shop/products`, `/shop/category/{slug}` | Katalog + pencarian, filter (kategori, harga, stok, rating, brand, atribut) & sorting |
+| `/shop/product/{slug}` | Detail produk: galeri, varian, qty, add to cart / buy now / WhatsApp / contact, spesifikasi, ulasan, related, recently viewed, JSON-LD |
+| `/shop/cart`, `/shop/checkout` | Keranjang (page/drawer sesuai template) & checkout multi-step, kupon, ongkir, pajak |
+| `/shop/order/{number}?token=…`, `/shop/track` | Halaman pesanan (butuh token rahasia atau login pemilik) & lacak pesanan |
+| `/account/*` | Akun pelanggan: profil, pesanan, wishlist, alamat, ulasan (guard `customer`, terpisah dari user/admin) |
+
+**Seller dashboard** (`/dashboard/shop`, `/dashboard/websites/{company}/shop/*`): overview + grafik,
+produk (gambar, varian, tag, CTA, related, SEO), kategori & tag, pesanan (status, pembayaran, resi,
+invoice), pelanggan, kupon, inventori (stok tersedia/dipesan, penyesuaian, log), ulasan (moderasi),
+pengiriman, pembayaran, diskon & pajak, pengaturan. **Admin** (`/admin/shop/*`): semua toko, produk,
+pesanan dan pelanggan.
+
+Arsitektur (`app/Services/Shop`):
+
+- `CartService` — keranjang guest (token di session) / customer, digabung saat login. Total **selalu
+  dihitung ulang dari database**; harga dari browser diabaikan.
+- `CheckoutService` — membuat order dengan snapshot item/alamat, reservasi stok atomik
+  (`UPDATE … WHERE stock - reserved_stock >= qty`), redeem kupon atomik, WhatsApp checkout (pesan
+  pre-filled, dikirim sendiri oleh pembeli).
+- `OrderService` — transisi status (pending → confirmed → processing → packed → shipped → completed,
+  cancelled/refunded) beserta efek stok & kupon, timeline, resi.
+- `InventoryService`, `CouponService`, `TaxService`, `ReviewService` (verified purchase), `CatalogService`.
+- `Shipping/ShippingProviderInterface` + `ManualShippingProvider` (pickup, flat, free, custom per kota) dan
+  `Payment/PaymentProviderInterface` + `ManualPaymentProvider` (transfer bank, COD). Provider baru
+  (RajaOngkir, Midtrans, …) cukup mengimplementasikan interface dan didaftarkan di `AppServiceProvider`.
+  Data kartu kredit tidak pernah disimpan.
+- Batas tenant: semua tabel toko memiliki `company_profile_id`; middleware `shop` memastikan toko aktif
+  dan sesi customer milik toko yang sama.
+- Kartu produk: 8 gaya (`classic`, `minimal`, `luxury`, `bento`, `horizontal`, `image`, `compact`, `modern`)
+  di `resources/views/components/shop/product-card`, dipilih lewat token `product_card` design system
+  template.
 
 ---
 

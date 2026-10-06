@@ -11,4 +11,7 @@ Laravel 13 SaaS (SQLite, Blade, Tailwind v4, Alpine, Vite). See README.md for th
   (`App\Support\Website\SiteContext`) and use brand tokens (`bg-primary`, `text-on-primary`, `font-heading`,
   `rounded-brand`, `rounded-btn`). Register layouts in `config/website-templates.php`.
 - Rich text is sanitized with `App\Support\HtmlSanitizer` before saving; everything else is escaped.
+- Online shop: services in `app/Services/Shop` (never trust browser prices — totals are recalculated from the DB;
+  stock reservation/coupon redemption are atomic), storefront `resources/views/websites/shop` extends the company's
+  own layout (`$shopLayout`, `$ds`), seller views `resources/views/dashboard/shop`, customers use the `customer` guard.
 - Commands: `php artisan migrate:fresh --seed`, `php artisan test`, `npm run build`, `vendor/bin/pint`.

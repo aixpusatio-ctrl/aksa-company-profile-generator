@@ -18,6 +18,20 @@
         <x-stat-card label="Pending Domains" :value="number_format($stats['pending_domains'])" icon="clock" color="amber" hint="Menunggu / sedang diverifikasi" />
     </div>
 
+    {{-- Online shop overview --}}
+    @isset($shopStats)
+        <div class="mt-8 flex items-center justify-between">
+            <h2 class="font-display text-base font-semibold text-slate-900">E-Commerce</h2>
+            <a href="{{ route('admin.shop.shops') }}" class="text-sm font-medium text-brand-600 hover:text-brand-700">Lihat semua toko</a>
+        </div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <x-stat-card label="Toko Aktif" :value="number_format($shopStats['shops'])" icon="briefcase" color="brand" />
+            <x-stat-card label="Total Pesanan" :value="number_format($shopStats['orders'])" icon="list" color="sky" />
+            <x-stat-card label="Pesanan Berjalan" :value="number_format($shopStats['open_orders'])" icon="clock" color="amber" hint="Belum selesai / dibatalkan" />
+            <x-stat-card label="GMV" :value="\App\Support\Shop\Money::format($shopStats['gmv'])" icon="banknotes" color="green" hint="Pesanan lunas di semua toko" />
+        </div>
+    @endisset
+
     {{-- 14-day chart --}}
     @php($max = max(1, collect($chart)->max(fn ($d) => max($d['users'], $d['websites']))))
     <div class="card mt-8">

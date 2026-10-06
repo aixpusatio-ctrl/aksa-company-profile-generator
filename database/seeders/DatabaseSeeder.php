@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             TemplateCategorySeeder::class,
             TemplateSeeder::class,
             DemoCompanySeeder::class,
+            ShopDemoSeeder::class,
         ]);
     }
 }

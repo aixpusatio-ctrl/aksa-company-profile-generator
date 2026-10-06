@@ -326,7 +326,7 @@ class ShopDemoSeeder extends Seeder
 
             if ($order->status === 'completed') {
                 foreach ($order->items as $item) {
-                    if ($item->product && random_int(0, 3) > 0) {
+                    if ($item->product && random_int(0, 3) > 0 && ! $item->product->reviews()->where('email', $order->customer_email)->exists()) {
                         $review = $this->reviews->submit($company, $item->product, [
                             'rating' => [5, 5, 4, 5, 3][random_int(0, 4)],
                             'title' => ['Kualitas bagus', 'Sesuai foto', 'Pengiriman cepat', 'Sangat puas', 'Recommended'][random_int(0, 4)],

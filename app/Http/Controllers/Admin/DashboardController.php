@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\CompanyProfile;
 use App\Models\Domain;
+use App\Models\Shop\Order;
 use App\Models\Template;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -33,6 +34,12 @@ class DashboardController extends Controller
                 'new_users' => User::query()->where('created_at', '>=', $since)->count(),
                 'new_websites' => CompanyProfile::query()->where('created_at', '>=', $since)->count(),
                 'pending_domains' => Domain::query()->whereIn('status', [Domain::STATUS_PENDING, Domain::STATUS_VERIFYING])->count(),
+            ],
+            'shopStats' => [
+                'shops' => CompanyProfile::query()->where('shop_enabled', true)->count(),
+                'orders' => Order::query()->count(),
+                'open_orders' => Order::query()->whereNotIn('status', ['completed', 'cancelled', 'refunded'])->count(),
+                'gmv' => (float) Order::query()->where('payment_status', 'paid')->whereNotIn('status', ['cancelled', 'refunded'])->sum('total'),
             ],
             'chart' => $days->map(fn ($d) => ['date' => $d, 'users' => $signups[$d] ?? 0, 'websites' => $sites[$d] ?? 0]),
             'latestUsers' => User::query()->latest()->take(5)->get(),
