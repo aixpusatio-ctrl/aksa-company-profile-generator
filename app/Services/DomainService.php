@@ -89,6 +89,21 @@ class DomainService
         Cache::forget('tenant-host:'.(str_starts_with($host, 'www.') ? substr($host, 4) : 'www.'.$host));
     }
 
+    /** Second-level public suffixes, e.g. perusahaan.co.id is an apex domain. */
+    private const SECOND_LEVEL_SUFFIXES = [
+        'co.id', 'ac.id', 'or.id', 'go.id', 'web.id', 'my.id', 'biz.id', 'sch.id', 'net.id', 'ponpes.id',
+        'co.uk', 'org.uk', 'com.au', 'net.au', 'com.sg', 'com.my', 'co.jp', 'co.nz', 'com.br', 'co.za',
+    ];
+
+    public static function isApex(string $domain): bool
+    {
+        $parts = explode('.', $domain);
+        $suffix = implode('.', array_slice($parts, -2));
+        $labels = in_array($suffix, self::SECOND_LEVEL_SUFFIXES, true) ? 3 : 2;
+
+        return count($parts) <= $labels;
+    }
+
     // ------------------------------------------------------------ Custom domains
 
     public function add(CompanyProfile $company, string $domain): Domain
@@ -98,7 +113,7 @@ class DomainService
 
         $record = $company->domains()->create([
             'domain' => $domain,
-            'type' => substr_count($domain, '.') >= 2 ? Domain::TYPE_SUBDOMAIN : Domain::TYPE_APEX,
+            'type' => self::isApex($domain) ? Domain::TYPE_APEX : Domain::TYPE_SUBDOMAIN,
             'verification_token' => 'cpg-'.Str::lower(Str::random(32)),
             'status' => Domain::STATUS_PENDING,
             'is_primary' => ! $company->domains()->exists(),
@@ -131,7 +146,8 @@ class DomainService
     public function dnsInstructions(Domain $domain): array
     {
         $parts = explode('.', $domain->domain);
-        $name = $domain->type === Domain::TYPE_SUBDOMAIN ? implode('.', array_slice($parts, 0, -2)) : '@';
+        $rootLabels = in_array(implode('.', array_slice($parts, -2)), self::SECOND_LEVEL_SUFFIXES, true) ? 3 : 2;
+        $name = $domain->type === Domain::TYPE_SUBDOMAIN ? implode('.', array_slice($parts, 0, -$rootLabels)) : '@';
         $prefix = config('platform.custom_domains.txt_prefix');
 
         $records = [];

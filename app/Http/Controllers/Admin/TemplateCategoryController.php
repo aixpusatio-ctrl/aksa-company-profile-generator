@@ -44,11 +44,14 @@ class TemplateCategoryController extends Controller
     {
         $request->merge(['slug' => Str::slug($request->input('slug') ?: $request->input('name'))]);
 
-        return $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'slug' => ['required', 'string', 'max:100', Rule::unique('template_categories', 'slug')->ignore($category?->id)],
             'description' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
+        $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
+
+        return $data;
     }
 }
